@@ -1,18 +1,19 @@
+import { actionConfig } from "actions/slots";
 import { call, put, takeEvery } from "redux-saga/effects";
-// import api from "./api"; // Assuming you have an API module
+import { get } from "utils/ApiHelpers";
 
 // Worker Saga: will be fired on USER_FETCH_REQUESTED actions
-function* fetchUser(action) {
+function* fetchSlots({ payload }) {
   try {
-    const user = yield call("", action.payload.userId);
+    const user = yield call(get, `/slots/${payload}`);
+    console.log(payload, "user123");
     yield put({ type: "USER_FETCH_SUCCEEDED", user: user });
   } catch (e) {
     yield put({ type: "USER_FETCH_FAILED", message: e.message });
   }
 }
 
-// Starts fetchUser on each dispatched USER_FETCH_REQUESTED action
 // Allows concurrent fetches of user
-export function* watchFetchUser() {
-  yield takeEvery("USER_FETCH_REQUESTED", fetchUser);
+export function* watchFetchSlots() {
+  yield takeEvery(actionConfig.getSlots, fetchSlots);
 }

@@ -12,6 +12,8 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { sampleSlots } from "pages/slots/data";
+import { useDispatch } from "react-redux";
+import { actionConfig } from "actions/booking";
 
 const style = {
   position: "absolute",
@@ -31,6 +33,7 @@ const BookingModal = ({ isOpen, setIsopen }) => {
     name: "",
     phone: "",
     slot: "",
+    date: "2024-06-08T17:11:59.788Z",
   });
 
   const [errors, setErrors] = useState({
@@ -38,6 +41,8 @@ const BookingModal = ({ isOpen, setIsopen }) => {
     phone: "",
     slot: "",
   });
+
+  const dispatch = useDispatch();
 
   const validate = () => {
     let tempErrors = { ...errors };
@@ -73,6 +78,7 @@ const BookingModal = ({ isOpen, setIsopen }) => {
     e.preventDefault();
     if (validate()) {
       console.log(formData);
+      dispatch({ type: actionConfig.postSlot, payload: formData });
       handleClose(); // Close the modal after submission
     }
   };
@@ -100,6 +106,7 @@ const BookingModal = ({ isOpen, setIsopen }) => {
               id="name"
               label="Name"
               name="name"
+              size="small"
               value={formData.name}
               onChange={handleChange}
               error={!!errors.name}
@@ -115,6 +122,7 @@ const BookingModal = ({ isOpen, setIsopen }) => {
               id="phone"
               label="Phone"
               name="phone"
+              size="small"
               value={formData.phone}
               onChange={handleChange}
               error={!!errors.phone}
@@ -129,6 +137,7 @@ const BookingModal = ({ isOpen, setIsopen }) => {
               labelId="slot-label"
               id="slot"
               name="slot"
+              size="small"
               value={formData.slot}
               onChange={handleChange}
               label="Select Slot"

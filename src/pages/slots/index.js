@@ -1,16 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DateCard from "components/DateCard";
-import { sampleSlots, slots } from "./data";
+import { sampleSlots } from "./data";
 import classNames from "classnames";
 import BookingModal from "components/BookingModal";
+import { useDispatch } from "react-redux";
+import { actionConfig } from "actions/slots";
 
 const Slots = () => {
-  const [selectedDate, setSelectedDate] = useState();
+  const [selectedDate, setSelectedDate] = useState(null);
   const [isOpen, setIsopen] = useState(false);
+  const dispatch = useDispatch();
+
+  // Generate week dates using a for loop
+  const getWeekDates = () => {
+    const dates = [];
+    const currentDate = new Date();
+
+    for (let i = 0; i < 7; i++) {
+      dates.push(currentDate.toISOString());
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  };
+
+  // Memoize the week dates to avoid recomputation
+  const weekDates = useMemo(() => getWeekDates(), []);
+
+  // Set the initial selected date when the component mounts
+  useEffect(() => {
+    setSelectedDate(weekDates[0]);
+  }, [weekDates]);
 
   useEffect(() => {
-    setSelectedDate(slots[2].date);
-  }, []);
+    if (selectedDate !== null) {
+      dispatch({ type: actionConfig.getSlots, payload: selectedDate });
+    }
+  }, [selectedDate]);
 
   const handleSelectSlot = () => {
     setIsopen(true);
@@ -28,12 +54,13 @@ const Slots = () => {
       <div>
         <p className="text-xl font-roboto py-4">Date</p>
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap">
-          {slots.map((s) => {
+          {weekDates.map((s) => {
             return (
               <DateCard
-                key={s.date}
-                currentDate={s.date}
+                key={s}
+                currentDate={s}
                 selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
               />
             );
           })}
