@@ -1,19 +1,68 @@
-import { actionConfig } from "actions/slots";
-import { call, put, takeEvery } from "redux-saga/effects";
-import { get } from "utils/ApiHelpers";
+import { call, put, takeLatest } from "redux-saga/effects";
+import { gql } from "@apollo/client";
+import client from "utils/ApiHelpers";
+import {
+  FETCH_SLOTS_REQUEST,
+  fetchSlotsSuccess,
+  fetchSlotsFailure,
+  BOOK_SLOTS_REQUEST,
+} from "actions/slots";
 
-// Worker Saga: will be fired on USER_FETCH_REQUESTED actions
-function* fetchSlots({ payload }) {
+const GET_SLOTS_QUERY = gql`
+  query slots($date: String!) {
+    slots(date: $date) {
+      id
+      datetime
+      amount
+      isBooked
+    }
+  }
+`;
+
+const BOOK_SLOTS_MUTATION = gql`
+  mutation bookSlot($bookedBy: String!, $dateTime: String!, $phoneNo: String!) {
+    bookSlot(dateTime: $dateTime, bookedBy: $bookedBy, phoneNo: $phoneNo) {
+      id
+      datetime
+      amount
+      isBooked
+    }
+  }
+`;
+
+function* fetchSlotsSaga(action) {
   try {
-    const user = yield call(get, `/slots/${payload}`);
-    console.log(payload, "user123");
-    yield put({ type: "USER_FETCH_SUCCEEDED", user: user });
-  } catch (e) {
-    yield put({ type: "USER_FETCH_FAILED", message: e.message });
+    const response = yield call(client.query, {
+      query: GET_SLOTS_QUERY,
+      variables: { date: action.date },
+    });
+    yield put(fetchSlotsSuccess(response.data.slots));
+  } catch (error) {
+    yield put(fetchSlotsFailure(error.message));
   }
 }
 
-// Allows concurrent fetches of user
+function* bookSlotsSaga(action) {
+  try {
+    const response = yield call(client.mutate, {
+      mutation: BOOK_SLOTS_MUTATION,
+      variables: {
+        bookedBy: action.payload.name,
+        dateTime: action.payload.slot,
+        phoneNo: action.payload.phone,
+      },
+    });
+    console.log(response);
+    // yield put(fetchSlotsSuccess(response.data.bookSlot));
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export function* watchFetchSlots() {
-  yield takeEvery(actionConfig.getSlots, fetchSlots);
+  yield takeLatest(FETCH_SLOTS_REQUEST, fetchSlotsSaga);
+}
+
+export function* watchBookSlots() {
+  yield takeLatest(BOOK_SLOTS_REQUEST, bookSlotsSaga);
 }

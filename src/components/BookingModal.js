@@ -11,9 +11,9 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { sampleSlots } from "pages/slots/data";
-import { useDispatch } from "react-redux";
-import { actionConfig } from "actions/booking";
+import { useDispatch, useSelector } from "react-redux";
+import { bookSlotsRequest } from "actions/slots";
+import moment from "moment";
 
 const style = {
   position: "absolute",
@@ -29,6 +29,8 @@ const style = {
 };
 
 const BookingModal = ({ isOpen, setIsopen }) => {
+  const { loading, slots, error } = useSelector((state) => state.slots);
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -74,11 +76,11 @@ const BookingModal = ({ isOpen, setIsopen }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (validate()) {
-      console.log(formData);
-      dispatch({ type: actionConfig.postSlot, payload: formData });
+      console.log(formData, 1);
+      dispatch(bookSlotsRequest(formData));
+
       handleClose(); // Close the modal after submission
     }
   };
@@ -98,8 +100,8 @@ const BookingModal = ({ isOpen, setIsopen }) => {
         <Typography id="modal-modal-title" variant="h6" component="h2">
           Confirm Booking
         </Typography>
-        <form onSubmit={handleSubmit}>
-          <FormControl fullWidth margin="normal" error={!!errors.name}>
+        <form>
+          <FormControl fullWidth error={!!errors.name}>
             <TextField
               margin="normal"
               fullWidth
@@ -115,7 +117,7 @@ const BookingModal = ({ isOpen, setIsopen }) => {
               <p style={{ color: "red", fontSize: "0.8rem" }}>{errors.name}</p>
             )}
           </FormControl>
-          <FormControl fullWidth margin="normal" error={!!errors.phone}>
+          <FormControl fullWidth error={!!errors.phone}>
             <TextField
               margin="normal"
               fullWidth
@@ -142,9 +144,9 @@ const BookingModal = ({ isOpen, setIsopen }) => {
               onChange={handleChange}
               label="Select Slot"
             >
-              {sampleSlots.map((slot, index) => (
-                <MenuItem key={index} value={slot.time}>
-                  {slot.time}
+              {slots.map((slot, index) => (
+                <MenuItem key={index} value={slot.datetime}>
+                  {moment.utc(slot.datetime).format("HH:mm A")}
                 </MenuItem>
               ))}
             </Select>
@@ -152,7 +154,12 @@ const BookingModal = ({ isOpen, setIsopen }) => {
               <p style={{ color: "red", fontSize: "0.8rem" }}>{errors.slot}</p>
             )}
           </FormControl>
-          <Button type="submit" fullWidth variant="contained" color="primary">
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
+          >
             Submit
           </Button>
         </form>

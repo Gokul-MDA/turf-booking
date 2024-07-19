@@ -1,7 +1,6 @@
 import { all } from "redux-saga/effects";
-import { watchFetchSlots } from "./slots";
-import { watchPostSlot } from "./booking";
+import { watchBookSlots, watchFetchSlots } from "./slots";
 
 export default function* rootSaga() {
-  yield all([watchFetchSlots(), watchPostSlot()]);
+  yield all([watchFetchSlots(), watchBookSlots()]);
 }

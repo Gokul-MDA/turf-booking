@@ -5,7 +5,7 @@ module.exports = {
       colors: {
         primary: "#bacefa",
         secondary: "#11377e",
-        footer: "#343338",
+        footer: "#f7f7f7",
       },
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
