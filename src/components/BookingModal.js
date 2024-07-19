@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Backdrop,
   Box,
   Button,
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -12,8 +14,9 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
-import { bookSlotsRequest } from "actions/slots";
 import moment from "moment";
+import { fetchBookingRequest } from "slice/booking";
+import { isObject } from "lodash";
 
 const style = {
   position: "absolute",
@@ -29,13 +32,15 @@ const style = {
 };
 
 const BookingModal = ({ isOpen, setIsopen }) => {
-  const { loading, slots, error } = useSelector((state) => state.slots);
+  const { loading, slots } = useSelector((state) => state.slots);
+  const { selectedSlot } = useSelector((state) => state.booking);
+  const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     slot: "",
-    date: "2024-06-08T17:11:59.788Z",
+    amount: null,
   });
 
   const [errors, setErrors] = useState({
@@ -44,7 +49,15 @@ const BookingModal = ({ isOpen, setIsopen }) => {
     slot: "",
   });
 
-  const dispatch = useDispatch();
+  useEffect(() => {
+    if (isObject(selectedSlot)) {
+      setFormData({
+        ...formData,
+        slot: selectedSlot?.datetime,
+        amount: selectedSlot?.amount,
+      });
+    }
+  }, [selectedSlot]);
 
   const validate = () => {
     let tempErrors = { ...errors };
@@ -79,7 +92,7 @@ const BookingModal = ({ isOpen, setIsopen }) => {
   const handleSubmit = () => {
     if (validate()) {
       console.log(formData, 1);
-      dispatch(bookSlotsRequest(formData));
+      dispatch(fetchBookingRequest(formData));
 
       handleClose(); // Close the modal after submission
     }
@@ -88,6 +101,17 @@ const BookingModal = ({ isOpen, setIsopen }) => {
   const handleClose = () => {
     setIsopen(false);
   };
+
+  if (loading) {
+    return (
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    );
+  }
 
   return (
     <Modal
@@ -144,11 +168,13 @@ const BookingModal = ({ isOpen, setIsopen }) => {
               onChange={handleChange}
               label="Select Slot"
             >
-              {slots.map((slot, index) => (
-                <MenuItem key={index} value={slot.datetime}>
-                  {moment.utc(slot.datetime).format("HH:mm A")}
-                </MenuItem>
-              ))}
+              {slots
+                .filter((i) => !i.isBooked)
+                .map((slot, index) => (
+                  <MenuItem key={index} value={slot.datetime}>
+                    {moment.utc(slot.datetime).format("hh:mm A")}
+                  </MenuItem>
+                ))}
             </Select>
             {errors.slot && (
               <p style={{ color: "red", fontSize: "0.8rem" }}>{errors.slot}</p>

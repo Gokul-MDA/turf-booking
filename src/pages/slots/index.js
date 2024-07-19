@@ -3,14 +3,18 @@ import DateCard from "components/DateCard";
 import classNames from "classnames";
 import BookingModal from "components/BookingModal";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSlotsRequest } from "actions/slots";
 import moment from "moment";
+import { Backdrop, CircularProgress } from "@mui/material";
+import { fetchSlotsRequest } from "slice/slots/index.js";
+import { setState } from "slice/booking";
+import SuccessAlert from "components/SuccessAlert";
 
 const Slots = () => {
+  const dispatch = useDispatch();
   const [selectedDate, setSelectedDate] = useState(null);
   const [isOpen, setIsopen] = useState(false);
-  const dispatch = useDispatch();
-  const { loading, slots, error } = useSelector((state) => state.slots);
+  const { loading, slots } = useSelector((state) => state.slots);
+  const { bookSuccess } = useSelector((state) => state.booking);
 
   // Generate week dates using a for loop
   const getWeekDates = () => {
@@ -34,13 +38,24 @@ const Slots = () => {
   }, [weekDates, dispatch]);
 
   useEffect(() => {
-    console.log(loading, slots, error);
     dispatch(fetchSlotsRequest(weekDates[0]));
   }, []);
 
-  const handleSelectSlot = () => {
+  const handleSelectSlot = (slot) => {
+    dispatch(setState({ selectedSlot: slot }));
     setIsopen(true);
   };
+
+  if (loading) {
+    return (
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -75,7 +90,7 @@ const Slots = () => {
               <button
                 key={s.datetime}
                 className="w-24 text-center border rounded-sm px-2 py-1"
-                onClick={handleSelectSlot}
+                onClick={() => handleSelectSlot(s)}
                 disabled={s.isBooked}
               >
                 <p
@@ -84,17 +99,20 @@ const Slots = () => {
                     "text-gray-400": s.isBooked,
                   })}
                 >
-                  {moment.utc(s.datetime).format("HH:mm A")}
+                  {moment.utc(s.datetime).format("hh:mm A")}
                 </p>
-                <p className="text-gray-400 text-sm">
-                  Available for {s.amount}
-                </p>
+                {!s.isBooked && (
+                  <p className="text-gray-400 text-sm">
+                    Available for {s.amount}
+                  </p>
+                )}
               </button>
             );
           })}
         </div>
       </div>
       <BookingModal isOpen={isOpen} setIsopen={setIsopen} />
+      <SuccessAlert open={bookSuccess} />
     </div>
   );
 };

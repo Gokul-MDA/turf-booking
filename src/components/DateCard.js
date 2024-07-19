@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import { useDispatch } from "react-redux";
-import { fetchSlotsRequest } from "actions/slots";
+import { fetchSlotsRequest } from "slice/slots";
 
 const DateCard = ({ currentDate, selectedDate, setSelectedDate }) => {
   const month = format(currentDate, "MMM");

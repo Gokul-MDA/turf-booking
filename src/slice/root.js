@@ -1,9 +1,9 @@
 import { combineReducers } from "@reduxjs/toolkit";
-import demoReducer from "./demo";
-import slotsReducer from "./slots.js";
+import slotsReducer from "./slots/index.js";
+import bookingReducer from "./booking";
 
 const rootReducer = combineReducers({
-  user: demoReducer,
+  booking: bookingReducer,
   slots: slotsReducer,
 });
 
